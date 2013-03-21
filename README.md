@@ -21,3 +21,5 @@ Generally speaking, to solve this problem we need some in-depth understanding of
 3/21/2013
 
 * Continue reading codes about fluid friction, which is essential in fluid simulation.
+* Recoded my program, try solving problems using Mick's methods.
+* Read and understand Mick's codes about advection, friction, diffusion and vorticity.
