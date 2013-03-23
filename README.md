@@ -13,6 +13,11 @@ Generally speaking, to solve this problem we need some in-depth understanding of
 
 ## Progress
 
+3/23/2013
+
+* Start reading _Computational Fluid Dynamics_ by John D. Anderson, a basic tutorial about CFD.
+* Continue Reconstructing my codes.
+
 3/21/2013
 
 * Continue reading codes about fluid friction, which is essential in fluid simulation.
