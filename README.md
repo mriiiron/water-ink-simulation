@@ -13,6 +13,10 @@ Generally speaking, to solve this problem we need some in-depth understanding of
 
 ## Progress
 
+3/24/2013
+
+* Finish reading (those f**king) fluid dynamics equations, and read the chapter about discretization, the key to CFD from (f**king) pure physics.
+
 3/23/2013
 
 * Start reading _Computational Fluid Dynamics_ by John D. Anderson, a basic tutorial about CFD.
