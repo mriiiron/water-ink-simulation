@@ -13,6 +13,10 @@ Generally speaking, to solve this problem we need some in-depth understanding of
 
 ## Progress
 
+3/25/2013
+
+* Read and understand Lax-Wendroff method and MacCormack method (for Euler equation, 2D non-viscuou fluid).
+
 3/24/2013
 
 * Finish reading (those f**king) fluid dynamics equations, and read the chapter about discretization, the key to CFD from (f**king) pure physics.
