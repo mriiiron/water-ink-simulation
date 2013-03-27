@@ -12,27 +12,16 @@ public:
 	GLint interactRange;
 	GLfloat ratioP2V;
 
-	GLint baseX, baseY;
-	GLint width, height;
-
-	FDSAdvectionFluid(GLint _baseX, GLint _baseY, GLint _width, GLint _height);
+	FDSAdvectionFluid(GLint dimension, GLint width, GLint height, GLint depth);
 	~FDSAdvectionFluid();
-	GLint getCell(GLint x, GLint y) { return x + width * y; }
-	GLfloat getDensity(GLint x, GLint y) { return density[getCell(x, y)]; }
-	GLvoid update();
-	GLvoid paint();
 	GLvoid stimulate();
+
+	GLvoid update();
+	GLvoid render();
 
 private:
 
-	GLfloat* density;
-	GLfloat* density_0;
-	GLfloat* vx;
-	GLfloat* vy;
-
 	// GLvoid flowExec(GLint x, GLint y, GLfloat sx, GLfloat sy, GLfloat dx, GLfloat dy, GLfloat inflow, GLfloat outflow);
-
-	GLvoid copyField(GLfloat* src, GLfloat* dst);
 
 	GLvoid commonAdvection(GLfloat* src, GLfloat* dst, GLfloat intensity);
 	GLvoid stamAdvection(GLfloat* src, GLfloat* dst, GLfloat intensity);
