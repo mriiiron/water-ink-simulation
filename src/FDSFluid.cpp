@@ -1,11 +1,12 @@
 #include <GL\glut.h>
 #include "FDSFluid.h"
 
-FDSFluid::FDSFluid(GLint dimension, GLint width, GLint height, GLint depth) {
+FDSFluid::FDSFluid(GLint _dimension, GLint _width, GLint _height, GLint _depth) {
+	dimension = _dimension;  width = _width;  height = _height;  depth = _depth;
 	size = width * height * depth;
-	p = new GLfloat[size];
-	vx = new GLfloat[size];
-	vy = new GLfloat[size];
+	p = new GLfloat[size];  zeroField(p, size);
+	vx = new GLfloat[size];  zeroField(vx, size);
+	vy = new GLfloat[size];  zeroField(vy, size);
 	if (dimension == FLUID_2D) {
 		vz = NULL;
 	}
@@ -22,4 +23,16 @@ FDSFluid::~FDSFluid() {
 	if (vx != NULL) { delete vx; }
 	if (vy != NULL) { delete vy; }
 	if (vz != NULL) { delete vz; }
+}
+
+GLvoid FDSFluid::copyField(GLfloat* src, GLfloat* dst, GLint size) {
+	for (GLint i = 0; i < size; i++) {
+		dst[i] = src[i];
+	}
+}
+
+GLvoid FDSFluid::zeroField(GLfloat* src, GLint size) {
+	for (GLint i = 0; i < size; i++) {
+		src[i] = 0.0f;
+	}
 }

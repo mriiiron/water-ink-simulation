@@ -3,12 +3,12 @@
 #include <cmath>
 #include <GL\glut.h>
 #include "FDSFluid.h"
+#include "FDSNonViscousFluid.h"
 
 using namespace std;
 
 #define FPS_PLANNED						40
 
-GLushort* fluidAreaIndexes;
 GLshort* fluidAreaVertices;
 GLfloat* fluidAreaColors;
 
@@ -18,7 +18,7 @@ GLint fps_time = 0;
 GLint fps_timebase = 0;
 DWORD time1, time2;
 
-FDSFluid fluid;
+FDSNonViscousFluid* nonViscous;
 
 GLvoid glInit() {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -32,15 +32,18 @@ GLvoid glInit() {
 
 GLvoid simulatorInit() {
 	glPointSize(2.0f);
-	GLint size = FDSFluid::GRID_SIZE;
-	fluidAreaIndexes = new GLushort[size * size];
-	fluidAreaVertices = new GLshort[2 * size * size];
-	fluidAreaColors = new GLfloat[3 * size * size];
-	for (GLint i = 0; i < size; i++) {
-		for (GLint j = 0; j < size; j++) {
-			fluidAreaIndexes[i * size + j] = i * size + j;
-			fluidAreaVertices[2 * (i * size + j)] = (fluid.baseX + j) * 4.0f;
-			fluidAreaVertices[2 * (i * size + j) + 1] = (fluid.baseY + i) * 4.0f;
+	nonViscous = new FDSNonViscousFluid(2, 100, 100, 1);
+	nonViscous->setLocation(-50, -50);
+	nonViscous->init();
+	GLint size = nonViscous->getSize();
+	GLint height = nonViscous->getHeight();
+	GLint width = nonViscous->getWidth();
+	fluidAreaVertices = new GLshort[2 * size];
+	fluidAreaColors = new GLfloat[3 * size];
+	for (GLint i = 0; i < height; i++) {
+		for (GLint j = 0; j < width; j++) {
+			fluidAreaVertices[2 * (i * width + j)] = (nonViscous->getLocationX() + j) * 4.0f;
+			fluidAreaVertices[2 * (i * width + j) + 1] = (nonViscous->getLocationY() + i) * 4.0f;
 		}
 	}
 	glVertexPointer(2, GL_SHORT, 0, fluidAreaVertices);
@@ -49,19 +52,21 @@ GLvoid simulatorInit() {
 
 GLvoid paintScene() {
 
-	GLint size = FDSFluid::GRID_SIZE;
+	GLint size = nonViscous->getSize();
+	GLint height = nonViscous->getHeight();
+	GLint width = nonViscous->getWidth();
 	glColor3f(0.03, 0.03, 0.03);
 	
-	for (GLint i = 0; i < size; i++) {
-		for (GLint j = 0; j < size; j++) {
-			fluidAreaColors[3 * (i * size + j)]
-			= fluidAreaColors[3 * (i * size + j) + 1]
-			= fluidAreaColors[3 * (i * size + j) + 2]
-			= sqrt(fluid.getDensity(i, j)) / 2.0f;
+	for (GLint i = 0; i < height; i++) {
+		for (GLint j = 0; j < width; j++) {
+			fluidAreaColors[3 * (i * width + j)]
+			= fluidAreaColors[3 * (i * width + j) + 1]
+			= fluidAreaColors[3 * (i * width + j) + 2]
+			= sqrt(nonViscous->getP(i, j)) / 2.0f;
 		}
 	}
 
-	glDrawElements(GL_POINTS, size * size, GL_UNSIGNED_SHORT, fluidAreaIndexes);
+	glDrawArrays(GL_POINTS, 0, size);
 
 	fps_frames++;
 	fps_time = glutGet(GLUT_ELAPSED_TIME);
@@ -76,16 +81,16 @@ GLvoid paintScene() {
 }
 
 GLvoid updateScene() {
-	// fluid.update();
+	// nonViscous->update();
 }
 
 GLvoid onKeyDown(GLubyte key, int x, int y) {
 	switch (key) {
 	case 's':
-		fluid.stimulate();
+		nonViscous->stimulate();
 		break;
 	default:
-		fluid.update();
+		nonViscous->update();
 		break;
 	}
 }

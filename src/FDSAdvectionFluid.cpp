@@ -11,6 +11,10 @@ FDSAdvectionFluid::FDSAdvectionFluid(GLint dimension, GLint width, GLint height,
 	ratioP2V = 0.5f;
 }
 
+FDSAdvectionFluid::~FDSAdvectionFluid() {
+
+}
+
 GLvoid FDSAdvectionFluid::copyField(GLfloat* src, GLfloat* dst) {
 	for (GLint cell = 0; cell < width * height; cell++)	{
 		dst[cell] = src[cell];

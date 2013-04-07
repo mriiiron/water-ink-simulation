@@ -14,6 +14,8 @@ public:
 
 	FDSAdvectionFluid(GLint dimension, GLint width, GLint height, GLint depth);
 	~FDSAdvectionFluid();
+
+	GLvoid copyField(GLfloat* src, GLfloat* dst);
 	GLvoid stimulate();
 
 	GLvoid update();
