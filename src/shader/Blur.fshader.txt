@@ -1,0 +1,24 @@
+uniform sampler2D tex;
+
+void main() {
+	float sstep = 1.0 / 640.0;
+	float tstep = 1.0 / 480.0;
+	vec4 color_02 =	texture2D(tex, vec2(gl_TexCoord[0].s, gl_TexCoord[0].t - 2.0 * tstep));
+	vec4 color_11 =	texture2D(tex, vec2(gl_TexCoord[0].s - sstep, gl_TexCoord[0].t - tstep));
+	vec4 color_12 = texture2D(tex, vec2(gl_TexCoord[0].s, gl_TexCoord[0].t - tstep));
+	vec4 color_13 = texture2D(tex, vec2(gl_TexCoord[0].s + sstep, gl_TexCoord[0].t - tstep));
+	vec4 color_20 = texture2D(tex, vec2(gl_TexCoord[0].s - 2.0 * sstep, gl_TexCoord[0].t));
+	vec4 color_21 = texture2D(tex, vec2(gl_TexCoord[0].s - sstep, gl_TexCoord[0].t));
+	vec4 color_22 = texture2D(tex, vec2(gl_TexCoord[0].s, gl_TexCoord[0].t));
+	vec4 color_23 = texture2D(tex, vec2(gl_TexCoord[0].s + sstep, gl_TexCoord[0].t));
+	vec4 color_24 = texture2D(tex, vec2(gl_TexCoord[0].s + 2.0 * sstep, gl_TexCoord[0].t));
+	vec4 color_31 =	texture2D(tex, vec2(gl_TexCoord[0].s - sstep, gl_TexCoord[0].t + tstep));
+	vec4 color_32 = texture2D(tex, vec2(gl_TexCoord[0].s, gl_TexCoord[0].t + tstep));
+	vec4 color_33 = texture2D(tex, vec2(gl_TexCoord[0].s + sstep, gl_TexCoord[0].t + tstep));
+	vec4 color_42 =	texture2D(tex, vec2(gl_TexCoord[0].s, gl_TexCoord[0].t + 2.0 * tstep));
+	vec4 targetColor =
+		0.06 * (color_02 + color_20 + color_24 + color_42)
+		+ 0.08 * (color_11 + color_12 + color_13 + color_21 + color_23 + color_31 + color_32 + color_33)
+		+ 0.12 * color_22;
+	gl_FragColor = targetColor;
+}

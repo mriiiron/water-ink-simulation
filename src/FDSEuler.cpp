@@ -1,8 +1,11 @@
+#include <iostream>
 #include <GL\glut.h>
 #include "FDSFluid.h"
-#include "FDSNonViscousFluid.h"
+#include "FDSEuler.h"
 
-FDSNonViscousFluid::FDSNonViscousFluid(GLint dimension, GLint width, GLint height, GLint depth): FDSFluid(dimension, width, height, depth) {
+using namespace std;
+
+FDSEulerFluid::FDSEulerFluid(GLint _dimension, GLint _width, GLint _height, GLint _depth, GLint _locationX, GLint _locationY): FDSFluid(_dimension, _width, _height, _depth, _locationX, _locationY) {
 	p_estimating = new GLfloat[size];  zeroField(p_estimating, size);
 	p_correction = new GLfloat[size];  zeroField(p_correction, size);
 	dp_forward = new GLfloat[size];  zeroField(dp_forward, size);
@@ -12,9 +15,10 @@ FDSNonViscousFluid::FDSNonViscousFluid(GLint dimension, GLint width, GLint heigh
 	vx_correction = new GLfloat[size];  zeroField(vx_correction, size);
 	vy_estimating = new GLfloat[size];  zeroField(vy_estimating, size);
 	vy_correction = new GLfloat[size];  zeroField(vy_correction, size);
+	viscousity = 0.5f;
 }
 
-FDSNonViscousFluid::~FDSNonViscousFluid() {
+FDSEulerFluid::~FDSEulerFluid() {
 	delete p_estimating;
 	delete p_correction;
 	delete dp_forward;
@@ -26,22 +30,36 @@ FDSNonViscousFluid::~FDSNonViscousFluid() {
 	delete vy_correction;
 }
 
-GLvoid FDSNonViscousFluid::init() {
-	for (GLint i = 0; i < size; i++) {
-		p[i] = 1.0f;
-	}
-}
-
-GLvoid FDSNonViscousFluid::update() {
+GLvoid FDSEulerFluid::update() {
 
 	GLint cell;
+
+	// 先苟且处理边缘：保持网格边缘密度不变，碰撞速度反向
+	for (GLint x = 1; x < width - 1; x++) {
+		border_inverseY(getCell(x, 0));
+		border_inverseY(getCell(x, height - 1));
+	}
+	for (GLint y = 1; y < height - 1; y++) {
+		border_inverseX(getCell(0, y));
+		border_inverseX(getCell(width - 1, y));
+	}
+
+	// 再苟且处理四个角：反转速度，密度不变
+	border_inverseBoth(getCell(0, 0));
+	border_inverseBoth(getCell(0, height - 1));
+	border_inverseBoth(getCell(width - 1, 0));
+	border_inverseBoth(getCell(width - 1, height - 1));
+
 	GLfloat dp_xPart, dvx_xPart, dvy_xPart, dp_yPart, dvx_yPart, dvy_yPart;
 	GLfloat dp_backward_estimating, dvx_backward_estimating, dvy_backward_estimating;
 
 	// 更新密度场: MacCormack 法, 预估步
-	for (GLint x = 1; x < width - 1; x++) {
-		for (GLint y = 1; y < height - 1; y++) {
+	for (GLint y = 1; y < height - 1; y++) {
+		for (GLint x = 1; x < width - 1; x++) {
 			cell = getCell(x, y);
+			if (x == 2 && y == 42) {
+				cout << "fuck" << endl;
+			}
 			dp_xPart = p[cell] * (vx[cell + 1] - vx[cell]) + vx[cell] * (p[cell + 1] - p[cell]);
 			dp_yPart = p[cell] * (vy[cell + width] - vy[cell]) + vy[cell] * (p[cell + width] - p[cell]);
 			dvx_xPart = vx[cell] * (vx[cell + 1] - vx[cell]) + (p[cell + 1] - p[cell]) / p[cell];
@@ -58,9 +76,12 @@ GLvoid FDSNonViscousFluid::update() {
 	}
 
 	// 校正步
-	for (GLint x = 1; x < width - 1; x++) {
-		for (GLint y = 0; y < height - 1; y++) {
+	for (GLint y = 1; y < height - 1; y++) {
+		for (GLint x = 1; x < width - 1; x++) {
 			cell = getCell(x, y);
+			if (x == 2 && y == 42) {
+				cout << "fuck" << endl;
+			}
 			dp_xPart = p_estimating[cell] * (vx_estimating[cell] - vx_estimating[cell - 1]) + vx_estimating[cell] * (p_estimating[cell] - p_estimating[cell - 1]);
 			dp_yPart = p_estimating[cell] * (vy_estimating[cell] - vy_estimating[cell - width]) + vy_estimating[cell] * (p_estimating[cell] - p_estimating[cell - width]);
 			dvx_xPart = vx_estimating[cell] * (vx_estimating[cell] - vx_estimating[cell - 1]) + (p_estimating[cell] - p_estimating[cell - 1]) / p_estimating[cell];
@@ -76,13 +97,29 @@ GLvoid FDSNonViscousFluid::update() {
 		}
 	}
 
+	GLint dvx, dvy;
+
+	// 处理粘性
+	for (GLint y = 1; y < height; y++) {
+		for (GLint x = 0; x < width; x++) {
+			cell = getCell(x, y);
+			dvx = 0.5f * (vx[cell] - vx[cell - width]) * viscousity;
+			vx_correction[cell] -= dvx;
+			vx_correction[cell - width] += dvx;
+		}
+	}
+	for (GLint x = 1; x < width; x++) {
+		for (GLint y = 0; y < height; y++) {
+			cell = getCell(x, y);
+			dvy = 0.5f * (vy[cell] - vy[cell - 1]) * viscousity;
+			vy_correction[cell] -= dvy;
+			vy_correction[cell - 1] += dvy;
+		}
+	}
+	
 	// 将计算结果应用到目标场
-	copyField(p_correction, p, size);
-	copyField(vx_correction, vx, size);
-	copyField(vy_correction, vy, size);
-
-}
-
-GLvoid FDSNonViscousFluid::render() {
+	swapField(p_correction, p);
+	swapField(vx_correction, vx);
+	swapField(vy_correction, vy);
 
 }
