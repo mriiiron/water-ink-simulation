@@ -1,4 +1,6 @@
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include <GL\glut.h>
 #include "FDSFluid.h"
 #include "FDSAdvection.h"
@@ -23,6 +25,7 @@ FDSAdvectionFluid::FDSAdvectionFluid(GLint _dimension, GLint _width, GLint _heig
 	ink_pressure_intensity = 1.0f;
 	ink_decay_intensity = 0.995f;
 	pressure_force = 0.02f;
+	srand((GLuint)time(NULL));
 }
 
 FDSAdvectionFluid::~FDSAdvectionFluid() {
@@ -38,53 +41,20 @@ FDSAdvectionFluid::~FDSAdvectionFluid() {
 	if ( back_adv_drain_accum != NULL ) { delete back_adv_drain_accum; }
 }
 
-//GLvoid FDSAdvectionFluid::flowExec(GLint x, GLint y, GLfloat sx, GLfloat sy, GLfloat dx, GLfloat dy, GLfloat inflow, GLfloat outflow) {
-//	int sxInt = ROUND(sx), syInt = ROUND(sy), dxInt = ROUND(dx), dyInt = ROUND(dy);
-//	if (abs(sxInt - sx) < 0.001) {
-//		if (abs(syInt - sy) < 0.001f) {
-//			if (inflow > 0.0f) {
-//				p[sxInt][syInt] -= inflow;
-//			}
-//			if (outflow > 0.0f) {
-//				p[dxInt][dyInt] += outflow;
-//			}	
-//		}
-//		else {
-//			GLint syFloor = floor(sy), dyFloor = floor(dy);
-//			GLfloat wBottom = sy - syFloor, wTop = syFloor + 1.0f - sy;
-//			if (inflow > 0.0f) {
-//				p[sxInt][syFloor] -= (inflow * wTop);  p[sxInt][syFloor + 1] -= (inflow * wBottom);
-//			}
-//			if (outflow > 0.0f) {
-//				p[dxInt][dyFloor] += (outflow * wBottom);  p[dxInt][dyFloor + 1] += (outflow * wTop);
-//			}
-//		}
-//	}
-//	else if (abs(syInt - sy) < 0.001f) {
-//		GLint sxFloor = floor(sx), dxFloor = floor(dx);
-//		GLfloat wLeft = sx - sxFloor, wRight = sxFloor + 1.0f - sx;
-//		if (inflow > 0.0f) {
-//			p[sxFloor][syInt] -= (inflow * wRight);  p[sxFloor + 1][syInt] -= (inflow * wLeft);
-//		}
-//		if (outflow > 0.0f) {
-//			p[dxFloor][dyInt] += (outflow * wLeft);  p[dxFloor + 1][dyInt] += (outflow * wRight);
-//		}
-//	}
-//	else {
-//		GLint sxFloor = floor(sx), syFloor = floor(sy), dxFloor = floor(dx), dyFloor = floor(dy);
-//		GLfloat wRightTop = (sxFloor + 1.0f - sx) * (syFloor + 1.0f - sy), wLeftTop = (sx - sxFloor) * (syFloor + 1.0f - sy);
-//		GLfloat wRightBottom = (sxFloor + 1.0f - sx) * (sy - syFloor), wLeftBottom = (sx - sxFloor) * (sy - syFloor);
-//		if (inflow > 0.0f) {
-//			p[sxFloor][syFloor] -= (inflow * wRightTop);  p[sxFloor + 1][syFloor] -= (inflow * wLeftTop);
-//			p[sxFloor][syFloor + 1] -= (inflow * wRightBottom);  p[sxFloor + 1][syFloor + 1] -= (inflow * wLeftBottom);
-//		}
-//		if (outflow > 0.0f) {
-//			p[dxFloor][dyFloor] += (outflow * wLeftBottom);  p[dxFloor + 1][dyFloor] += (outflow * wRightBottom);
-//			p[dxFloor][dyFloor + 1] += (outflow * wLeftTop);  p[dxFloor + 1][dyFloor + 1] += (outflow * wRightTop);
-//		}
-//	}
-//	p[x][y] += (inflow - outflow);
-//}
+GLvoid FDSAdvectionFluid::reset() {
+	FDSFluid::reset();
+	zeroField(p_buffer, size);
+	zeroField(vx_buffer_0, size);
+	zeroField(vx_buffer_1, size);
+	zeroField(vy_buffer_0, size);
+	zeroField(vy_buffer_1, size);
+	zeroField(ink_buffer, size);
+	zeroField(curl_buffer, size);
+	zeroFieldInt(back_adv_source, size);
+	zeroField(back_adv_source_fracs, 4 * size);
+	zeroField(back_adv_drain_accum, size);
+	srand((GLuint)time(NULL));
+}
 
 GLvoid FDSAdvectionFluid::fluidPressure(GLint iterate_times, GLfloat intensity) {
 	for (GLint iterate = 0; iterate < iterate_times; iterate++) {
@@ -123,19 +93,22 @@ GLvoid FDSAdvectionFluid::inkPressure(GLfloat intensity) {
 				basicPressure = 2.0f;
 			}
 			else {
-				basicPressure = 2.0f * (inkForce - 1.0f) * (inkForce - 1.0f); 
+				basicPressure = 2.0f * (inkForce - 1.0f) * (inkForce - 1.0f);
 			}
+			GLfloat turb = (rand() % 11 - 5) / 10.0f;
+			vx[cell] += turb;
 			vy[cell] -= basicPressure;
 			if (cell % width > 0) {
-				vx[cell - 1] -= basicPressure * 0.5f;
+				vx[cell - 1] -= (basicPressure * 0.7f + turb * 0.5f);
 				vy[cell - 1] -= basicPressure * 0.2f;
 			}
 			if (cell % width < width - 1) {
-				vx[cell + 1] += basicPressure * 0.5f;
+				vx[cell + 1] += (basicPressure * 0.7f + turb * 0.5f);
 				vy[cell + 1] -= basicPressure * 0.2f;
 			}
 			if (cell >= width) {
-				vy[cell - width] -= ink[cell] * intensity * 0.8f;
+				vx[cell - width] += turb * 0.4f;
+				vy[cell - width] -= ink[cell] * intensity * 0.5f;
 			}
 		}
 	}

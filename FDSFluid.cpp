@@ -14,7 +14,7 @@ FDSFluid::FDSFluid(GLint _dimension, GLint _width, GLint _height, GLint _depth, 
 		vz = NULL;
 	}
 	else if (dimension == FLUID_3D) {
-		vz = new GLfloat[size];
+		vz = new GLfloat[size];  zeroField(vz, size);
 	}
 	else {
 		// Error
@@ -64,6 +64,17 @@ FDSFluid::~FDSFluid() {
 	if (fluidVelocityColors != NULL) { delete fluidVelocityColors; }
 	if (inkColors != NULL) { delete inkColors; }
 	if (inkVertices != NULL) { delete inkVertices; }
+}
+
+GLvoid FDSFluid::reset() {
+	setFieldValue(p, 10.0f, size);
+	zeroField(vx, size);
+	zeroField(vy, size);
+	if (dimension == FLUID_3D) {
+		zeroField(vz, size);
+	}
+	zeroField(ink, size);
+	ink_decay_open = GL_TRUE;
 }
 
 extern GLfloat scale;

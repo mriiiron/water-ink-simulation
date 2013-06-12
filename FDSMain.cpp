@@ -22,6 +22,7 @@ FDSAdvectionFluid* advec;
 GLint render_field = FDSFluid::RENDER_INK;
 
 GLboolean pause = GL_TRUE;
+GLboolean display_help = GL_FALSE;
 
 GLfloat scale = 1.0f;
 GLfloat viewpoint_x = 0.0f, viewpoint_y = 0.0f;
@@ -45,6 +46,8 @@ GLvoid glInit() {
 GLvoid simulatorInit() {
 	advec = new FDSAdvectionFluid(2, 100, 100, 1, -50, -50);
 }
+
+#define DISPLAY_HUD_STYLE				1
 
 GLvoid drawString(GLvoid* font, GLint rasterX, GLint rasterY, GLint hudStyle, const char* _Format, ...) {
 	char text[256];
@@ -77,6 +80,50 @@ GLvoid drawString(GLvoid* font, GLint rasterX, GLint rasterY, GLint hudStyle, co
 	}
 }
 
+GLvoid displayInfo() {
+	if (render_field == FDSFluid::RENDER_INK) {
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 5, DISPLAY_HUD_STYLE, "Press H: Toggle Help");
+	drawString(GLUT_BITMAP_HELVETICA_12, 520, 5, DISPLAY_HUD_STYLE, "Current FPS: %.1f", fps);
+	switch (render_field) {
+	case FDSFluid::RENDER_INK:
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 20, DISPLAY_HUD_STYLE, "Rendering: Ink");
+		break;
+	case FDSFluid::RENDER_DENSITY:
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 20, DISPLAY_HUD_STYLE, "Rendering: Density");
+		break;
+	case FDSFluid::RENDER_VELOCITY:
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 20, DISPLAY_HUD_STYLE, "Rendering: Velocity");
+		break;
+	default:
+		break;
+	}
+	if (advec->isInkDecay()) {
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 35, DISPLAY_HUD_STYLE, "Ink Decay: ON");
+	}
+	else {
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 35, DISPLAY_HUD_STYLE, "Ink Decay: OFF");
+	}
+	if (pause) {
+		drawString(GLUT_BITMAP_HELVETICA_12, 520, 60, DISPLAY_HUD_STYLE, "<PAUSED>");
+	}
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+GLvoid displayHelp() {
+	if (render_field == FDSFluid::RENDER_INK) {
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 460, DISPLAY_HUD_STYLE, "Press 1: Display Density");
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 445, DISPLAY_HUD_STYLE, "Press 2: Display Velocity");
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 430, DISPLAY_HUD_STYLE, "Press 3: Display Ink");
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 415, DISPLAY_HUD_STYLE, "Press SPACE: Toggle Run/Pause");
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 400, DISPLAY_HUD_STYLE, "Press D: Toggle ink decaying");
+	drawString(GLUT_BITMAP_HELVETICA_12, 5, 385, DISPLAY_HUD_STYLE, "Press R: Reset");
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
 GLvoid paintScene() {
 	glLoadIdentity();
 	glScalef(scale, scale, 1.0f);
@@ -89,7 +136,10 @@ GLvoid paintScene() {
 		fps_timebase = fps_time;		
 		fps_frames = 0;
 	}
-	drawString(GLUT_BITMAP_HELVETICA_18, 5, 5, 1, "Current FPS: %.1f", fps);
+	displayInfo();
+	if (display_help) {
+		displayHelp();
+	}
 }
 
 GLvoid updateScene() {
@@ -103,8 +153,14 @@ GLvoid onKeyDown(GLubyte key, int x, int y) {
 	case ' ':
 		pause = !pause;
 		break;
-	case 'i':
+	case 'd':
 		advec->switchInkDecay();
+		break;
+	case 'h':
+		display_help = !display_help;
+		break;
+	case 'r':
+		advec->reset();
 		break;
 	case '1':
 		render_field = FDSFluid::RENDER_DENSITY;
@@ -115,8 +171,6 @@ GLvoid onKeyDown(GLubyte key, int x, int y) {
 	case '3':
 		render_field = FDSFluid::RENDER_INK;
 		break;
-	case 'a':
-		cout << "fuck" << endl;
 	default:
 		break;
 	}
@@ -308,7 +362,7 @@ int main(int argc, char* argv[]) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(640, 480);
 	glutInitWindowPosition(200, 50);
-	glutCreateWindow("Fluid Dynamics Simulation by CaiyZ (Mr.IroN)");
+	glutCreateWindow("Water-Ink Dynamics Simulation by CaiyZ (Mr.IroN)");
 	glutDisplayFunc(&onDisplay);
 	glutReshapeFunc(&onReshape);
 	glutKeyboardFunc(&onKeyDown);

@@ -8,10 +8,18 @@ My undergraduate design: a solution of dynamic water-ink simulation system.
 
 Based on OpenGL, my most familiar graphics library, this is a functional solution to making effects, such as ink diffusing in water or smoke ascending in air, in computer games or animations.
 
-Generally speaking, to solve this problem we need some in-depth understanding of fluid dynamics. But in this solution I WON'T INVOLVE ANITHING about those f**king physics equations.
+Generally speaking, to solve this problem we need some in-depth understanding of fluid dynamics. But in this solution I WON'T INVOLVE ANITHING about those fucking physics equations.
+
+Finally **I MADE IT**! Just enjoy!
 
 
 ## Progress
+
+6/12/2013
+
+* Finished finally.
+* ![Preview](http://img14.poco.cn/mypoco/myphoto/20130612/13/5576878220130612135110066.png)
+
 
 3/25/2013
 

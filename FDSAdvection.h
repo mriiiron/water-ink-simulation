@@ -16,6 +16,8 @@ public:
 	GLfloat ink_decay_intensity;
 
 	GLvoid update();
+	GLvoid reset();
+
 	GLvoid switchInkDecay();
 
 private:
