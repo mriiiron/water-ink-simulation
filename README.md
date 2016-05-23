@@ -27,7 +27,7 @@ Finally **I MADE IT**! Just enjoy!
 
 3/24/2013
 
-* Finish reading (those f**king) fluid dynamics equations, and read the chapter about discretization, the key to CFD from (f**king) pure physics.
+* Finish reading fluid dynamics equations, and read the chapter about discretization, the key to CFD from pure physics.
 
 3/23/2013
 
